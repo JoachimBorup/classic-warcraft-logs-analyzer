@@ -11,8 +11,8 @@ def parse_args() -> argparse.Namespace:
 
     analyze_parser = sub_parsers.add_parser(name='analyze', help='Analyze a Warcraft Logs report.')
     analyze_parser.add_argument('report', help='The code of the report to analyze.')
-    analyze_parser.add_argument('--encounter', help='The encounter to analyze.')
-    analyze_parser.add_argument('--fights', nargs='+', help='The IDs of fights to analyze.')
+    analyze_parser.add_argument('--encounter', help='The ID of the encounter to analyze.', type=int)
+    analyze_parser.add_argument('--fights', nargs='+', help='The IDs of the fights to analyze.', type=int, default=[])
 
     sub_parsers.add_parser(name='token', help='Get an access token for the Warcraft Logs API.')
 
@@ -24,7 +24,7 @@ def main():
 
     if args.command == 'analyze':
         report.analyze(ReportRequest(args))
-    elif args.command == 'analyze':
+    elif args.command == 'token':
         print(utils.get_access_token())
     else:
         raise ValueError(f'Unknown command: {args.command}')

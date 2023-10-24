@@ -9,6 +9,10 @@ def analyze(request: ReportRequest):
     print()
 
     fights = report.fights
+    if len(fights) == 0:
+        print("No fights found!")
+        return
+
     average_item_levels = [fight.average_item_level for fight in fights]
     min_avg_ilvl, max_avg_ilvl = min(average_item_levels), max(average_item_levels)
 
@@ -20,4 +24,3 @@ def analyze(request: ReportRequest):
             print(f"- Killed {fight.name} ({mode})")
         else:
             print(f"- Wiped on {fight.name} ({mode}) at {fight.boss_percentage}%")
-
