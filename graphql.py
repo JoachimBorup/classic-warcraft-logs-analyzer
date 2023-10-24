@@ -1,29 +1,12 @@
-import os
 import requests
-from requests_oauthlib import OAuth2Session
 
 from models import Report, ReportRequest
+from utils import get_env_var
 
-PRIVATE_CLIENT_ID = os.getenv('WCL_PRIVATE_CLIENT_ID')
-PRIVATE_CLIENT_SECRET = os.getenv('WCL_PRIVATE_CLIENT_SECRET')
-base_url = 'https://www.warcraftlogs.com/api/v2/client'
-
-
-def get_access_token() -> str:
-    oauth = OAuth2Session(PRIVATE_CLIENT_ID, redirect_uri='https://localhost:5000/callback')
-    authorization_url, _ = oauth.authorization_url('https://www.warcraftlogs.com/oauth/authorize')
-
-    print('Please visit this URL to authorize your application:', authorization_url)
-    authorization_response = input('Enter the full callback URL: ')
-
-    token = oauth.fetch_token('https://www.warcraftlogs.com/oauth/token',
-                              authorization_response=authorization_response,
-                              client_secret=PRIVATE_CLIENT_SECRET)
-    return token
-
+base_url = 'https://www.warcraftlogs.com/api/v2/user'
 
 def get_report(request: ReportRequest) -> Report:
-    access_token = get_access_token()
+    access_token = get_env_var('WCL_ACCESS_TOKEN')
 
     query = """
     query ($code: String!) {
