@@ -1,26 +1,30 @@
 import requests
 
-from models import Report, ReportRequest
+from models import Fight, Report, ReportRequest
 from utils import get_env_var
 
-base_url = 'https://www.warcraftlogs.com/api/v2/user'
+API_URL = 'https://www.warcraftlogs.com/api/v2/user'
+
 
 def get_report(request: ReportRequest) -> Report:
     access_token = get_env_var('WCL_ACCESS_TOKEN')
-
-    query = """
-    query ($code: String!) {
-      reportData {
-        report(code: $code) {
-          code
-          endTime
-        }
-      }
-    }
-    """
-
-    data = {
-        'query': query,
+    json = {
+        'query': """
+            query ($code: String!, $encounterID: Int, $fightIDs: [Int]) {
+                reportData {
+                    report(code: $code) {
+                        fights(encounterID: $encounterID, fightIDs: $fightIDs) {
+                            encounterID
+                            name
+                            kill
+                            difficulty
+                            bossPercentage
+                            averageItemLevel
+                        }
+                    }
+                }
+            }
+        """,
         'variables': {
             'code': request.code
         }
@@ -28,10 +32,18 @@ def get_report(request: ReportRequest) -> Report:
 
     with requests.session() as session:
         session.headers = {'Authorization': f'Bearer {access_token}'}
-        response = session.get(base_url, json=data)
+        response = session.get(API_URL, json=json)
 
-        print(f"Status is {response.status_code}")
-        print(response.url)
-        print(response.json())
+        if response.status_code != 200:
+            raise ValueError(f"Error {response.status_code} retrieving report: {response.reason}")
 
-    return None
+        json_fights = response.json()['data']['reportData']['report']['fights']
+        fights = [Fight(
+            name=json_fight['name'],
+            kill=json_fight['kill'],
+            difficulty=json_fight['difficulty'],
+            boss_percentage=json_fight['bossPercentage'],
+            average_item_level=json_fight['averageItemLevel']
+        ) for json_fight in json_fights if json_fight['encounterID'] != 0]
+
+        return Report(fights)

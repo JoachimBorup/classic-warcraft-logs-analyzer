@@ -18,6 +18,10 @@ class ReportRequest:
 @dataclass
 class Fight:
     name: str
+    kill: Optional[bool]
+    difficulty: Optional[int]
+    boss_percentage: Optional[float]
+    average_item_level: Optional[float]
 
 
 @dataclass
