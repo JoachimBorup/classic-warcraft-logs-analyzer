@@ -1,3 +1,4 @@
+from collections import Counter
 from src import graphql
 from src.models import ReportRequest
 
@@ -28,7 +29,12 @@ def analyze(request: ReportRequest):
     
     deathEvents = report.deathEvents
     count: int = 0
+    lastDeathAbility: list(str) = []
     for deathEvent in deathEvents:
+        ability_names = [death.ability_name for death in deathEvents]
+        most_common_cause, countAbility = Counter(ability_names).most_common(1)[0]
         print(f"- Player: {deathEvent.name} died to {deathEvent.ability_name}")
         count=len(deathEvents)
+        lastDeathAbility.append(deathEvent.ability_name)
     print(f"- The amount: {count} of people dying on this pull")
+    print(f"- The amount: {countAbility} of people dying to {most_common_cause}")
