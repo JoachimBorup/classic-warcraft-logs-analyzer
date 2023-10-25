@@ -1,5 +1,5 @@
-import graphql
-from models import ReportRequest
+from src import graphql
+from src.models import ReportRequest
 
 
 def analyze(request: ReportRequest):
@@ -12,7 +12,7 @@ def analyze(request: ReportRequest):
     if len(fights) == 0:
         print("No fights found!")
         return
-
+    
     average_item_levels = [fight.average_item_level for fight in fights]
     min_avg_ilvl, max_avg_ilvl = min(average_item_levels), max(average_item_levels)
 
@@ -24,3 +24,10 @@ def analyze(request: ReportRequest):
             print(f"- Killed {fight.name} ({mode})")
         else:
             print(f"- Wiped on {fight.name} ({mode}) at {fight.boss_percentage}%")
+    
+    
+    deathEvents = report.deathEvents
+    for deathEvent in deathEvents:
+        print(f"- Player: {deathEvent.name} died to {deathEvent.ability_name}")
+        count=count+1
+    print(f"- The amount: {count} of people dying on this pull")

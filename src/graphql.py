@@ -1,7 +1,7 @@
 import requests
 
-from models import Fight, Report, ReportRequest
-from utils import get_env_var
+from src.models import DeathEvent, Fight, Report, ReportRequest
+from src.utils import get_env_var
 
 API_URL = 'https://www.warcraftlogs.com/api/v2/user'
 
@@ -24,7 +24,7 @@ def query_graphql(query: str, variables: dict) -> dict:
 
 
 def get_report(request: ReportRequest) -> Report:
-    query = """
+    queryFights = """
         query ($code: String!, $encounterID: Int, $fightIDs: [Int]) {
             reportData {
                 report(code: $code) {
@@ -40,15 +40,29 @@ def get_report(request: ReportRequest) -> Report:
             }
         }
     """
+    queryTable = """
+        query ($code: String!, $encounterID: Int, $fightIDs: [Int]) {
+            reportData {
+                report(code: $code) {
+                    table(encounterID: $encounterID, fightIDs: $fightIDs)
+                }
+            }
+        }
+    """
+    
     variables = {
         'code': request.code,
         'encounterID': request.encounter,
         'fightIDs': request.fights
     }
 
-    data = query_graphql(query, variables)
-    json_fights = data['reportData']['report']['fights']
+    dataRep = query_graphql(queryFights, variables)
+    json_fights = dataRep['reportData']['report']['fights']
+    datatable = query_graphql(queryTable, variables)
+    json_tables = datatable['reportData']['report']['table']['data']['deathEvents']
 
+    print(json_tables)
+    
     fights = [Fight(
         name=json_fight['name'],
         encounter_id=json_fight['encounterID'],
@@ -58,4 +72,10 @@ def get_report(request: ReportRequest) -> Report:
         average_item_level=json_fight['averageItemLevel']
     ) for json_fight in json_fights if json_fight['encounterID'] != 0]
 
-    return Report(fights)
+    deathEvents = [DeathEvent(
+        name=json_table['name'],
+        ability_name=json_table['ability']['name']
+    )for json_table in json_tables]
+    
+
+    return Report(fights=fights, deathEvents=deathEvents)

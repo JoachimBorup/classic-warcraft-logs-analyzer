@@ -1,5 +1,4 @@
 import argparse
-
 from src import report, utils
 from src.models import ReportRequest
 

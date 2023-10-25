@@ -24,7 +24,12 @@ class Fight:
     boss_percentage: Optional[float]
     average_item_level: Optional[float]
 
+@dataclass
+class DeathEvent:
+    name: str
+    ability_name: str
 
 @dataclass
 class Report:
     fights: List[Fight]
+    deathEvents: List[DeathEvent]
