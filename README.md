@@ -1,4 +1,4 @@
-# classic-warcraft-logs-analyzer
+# Classic Warcraft Logs Analyzer
 
 ## Description
 
