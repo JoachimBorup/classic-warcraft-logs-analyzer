@@ -16,6 +16,8 @@ def _add_analyze_sub_parser(sub_parsers):
     analyze_parser.add_argument('report', help='The code of the report to analyze.')
     analyze_parser.add_argument('-f', '--fights', nargs='+', type=int, default=[],
                                 help='The IDs of the fights to analyze.')
+    analyze_parser.add_argument('-t', '--type', choices=['Wipes', 'Kills'], default='Encounters',
+                                help='The type of fights to analyze. Includes both kills and wipes by default.')
 
     encounter_group = analyze_parser.add_mutually_exclusive_group()
     encounter_group.add_argument('-e', '--encounter', type=int,
