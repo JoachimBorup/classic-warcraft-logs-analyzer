@@ -27,7 +27,8 @@ def analyze(request: ReportRequest):
     
     
     deathEvents = report.deathEvents
+    count: int = 0
     for deathEvent in deathEvents:
         print(f"- Player: {deathEvent.name} died to {deathEvent.ability_name}")
-        
-    print(f"- The amount: {len(deathEvent)} of people dying on this pull")
+        count=len(deathEvents)
+    print(f"- The amount: {count} of people dying on this pull")
