@@ -7,8 +7,15 @@ API_URL = 'https://www.warcraftlogs.com/api/v2/user'
 
 
 def query_graphql(query: str, variables: dict) -> dict:
-    access_token = get_env_var('WCL_ACCESS_TOKEN')
+    """Queries the Warcraft Logs API using GraphQL.
 
+    Requires the `WCL_ACCESS_TOKEN` environment variable to be set.
+
+    :param query: The GraphQL query to execute.
+    :param variables: The variables to pass to the query.
+    """
+
+    access_token = get_env_var('WCL_ACCESS_TOKEN')
     with requests.session() as session:
         session.headers = {'Authorization': f'Bearer {access_token}'}
 
