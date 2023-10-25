@@ -1,4 +1,5 @@
 import os
+from typing import Optional
 
 import dotenv
 from requests_oauthlib import OAuth2Session
@@ -13,15 +14,22 @@ def get_env_var(key: str) -> str:
     return value
 
 
-def get_access_token() -> str:
+def get_access_token(client_id: Optional[str] = None, client_secret: Optional[str] = None) -> str:
     """Creates an OAuth2 session and retrieves an access token for the Warcraft Logs API.
-
-    Requires the `WCL_CLIENT_ID` and `WCL_CLIENT_SECRET` environment variables to be set.
+    Will prompt the user to visit a URL and enter the callback URL.
     See https://classic.warcraftlogs.com/api/docs for more information.
+
+    :param client_id: The client ID for the Warcraft Logs API. If None,
+           the `WCL_CLIENT_ID` environment variable will be used instead.
+    :param client_secret: The client secret for the Warcraft Logs API. If None,
+           the `WCL_CLIENT_SECRET` environment variable will be used instead.
+    :return: The access token.
     """
 
-    client_id = get_env_var('WCL_CLIENT_ID')
-    client_secret = get_env_var('WCL_CLIENT_SECRET')
+    if client_id is None:
+        client_id = get_env_var('WCL_CLIENT_ID')
+    if client_secret is None:
+        client_secret = get_env_var('WCL_CLIENT_SECRET')
 
     oauth = OAuth2Session(client_id, redirect_uri='https://localhost:5000/callback')
     authorization_url, _ = oauth.authorization_url('https://www.warcraftlogs.com/oauth/authorize')

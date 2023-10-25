@@ -61,26 +61,37 @@ To analyze a report, run the following command using the report ID from the URL 
 python main.py analyze <report ID>
 ```
 
-To restrict the analysis to a specific boss and/or fights, use the optional `--encounter` and `--fights` flags:
+To restrict the analysis to a specific boss and/or fights, use the optional `--name` (alternatively, `--encounter`) and `--fights` flags:
 
 ```bash
-python main.py analyze <report ID> --encounter <encounter ID> --fights <fight IDs>
+python main.py analyze <report ID> --name <encounter name> --fights <fight IDs>
 ```
 
 #### Example
 
-The ID of Lady Deathwhisper is 846.
+Here are some examples of the output of the `analyze` command:
 
 ```bash
-$ python main.py analyze TJwWr16NBgZdtyRY --encounter 846
+$ python main.py analyze TJwWr16NBgZdtyRY --name "Lady Deathwhisper"
 
 Retrieving report TJwWr16NBgZdtyRY from Warcraft Logs...
 Retrieved report TJwWr16NBgZdtyRY!
 
-Report consists of 5 fights, with the avg. ilvl ranging between 254.32 and 254.40:
+Report consists of 5 fights:
 - Wiped on Lady Deathwhisper (Heroic) at 77.59%
 - Wiped on Lady Deathwhisper (Heroic) at 67.06%
 - Wiped on Lady Deathwhisper (Heroic) at 40.07%
 - Wiped on Lady Deathwhisper (Heroic) at 99.98%
 - Killed Lady Deathwhisper (Normal)
+```
+
+```bash
+$ python main.py analyze TJwWr16NBgZdtyRY --encounter 848 --type wipes
+
+Retrieving report TJwWr16NBgZdtyRY from Warcraft Logs...
+Retrieved report TJwWr16NBgZdtyRY!
+
+Report consists of 2 fights:
+- Wiped on Deathbringer Saurfang (Heroic) at 55.28%
+- Wiped on Deathbringer Saurfang (Heroic) at 30.16%
 ```

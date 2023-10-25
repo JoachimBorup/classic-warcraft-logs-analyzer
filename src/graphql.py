@@ -32,10 +32,10 @@ def query_graphql(query: str, variables: dict) -> dict:
 
 def get_report(request: ReportRequest) -> Report:
     query = """
-        query ($code: String!, $encounterID: Int, $fightIDs: [Int]) {
+        query ($code: String!, $encounterID: Int, $fightIDs: [Int], $killType: KillType) {
             reportData {
                 report(code: $code) {
-                    fights(encounterID: $encounterID, fightIDs: $fightIDs) {
+                    fights(encounterID: $encounterID, fightIDs: $fightIDs, killType: $killType) {
                         encounterID
                         name
                         kill
@@ -50,7 +50,8 @@ def get_report(request: ReportRequest) -> Report:
     variables = {
         'code': request.code,
         'encounterID': request.encounter,
-        'fightIDs': request.fights
+        'fightIDs': request.fights,
+        'killType': request.type
     }
 
     data = query_graphql(query, variables)
@@ -63,6 +64,6 @@ def get_report(request: ReportRequest) -> Report:
         difficulty=json_fight['difficulty'],
         boss_percentage=json_fight['bossPercentage'],
         average_item_level=json_fight['averageItemLevel']
-    ) for json_fight in json_fights if json_fight['encounterID'] != 0]
+    ) for json_fight in json_fights]
 
     return Report(fights)

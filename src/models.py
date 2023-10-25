@@ -11,10 +11,12 @@ class ReportRequest:
     name: Optional[str]
     encounter: Optional[int]
     fights: List[str]
+    type: str
 
     def __init__(self, args: argparse.Namespace):
         self.code = args.report
         self.fights = args.fights
+        self.type = args.type.capitalize()
 
         if args.name is not None:
             self.name = args.name
