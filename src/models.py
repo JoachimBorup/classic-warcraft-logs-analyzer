@@ -16,7 +16,7 @@ class ReportRequest:
     def __init__(self, args: argparse.Namespace):
         self.code = args.report
         self.fights = args.fights
-        self.type = args.type
+        self.type = args.type.capitalize()
 
         if args.name is not None:
             self.name = args.name
