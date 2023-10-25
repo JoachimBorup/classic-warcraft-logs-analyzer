@@ -7,7 +7,7 @@ from typing import List, Optional
 class ReportRequest:
     code: str
     encounter: Optional[str]
-    fights: Optional[List[str]]
+    fights: List[str]
 
     def __init__(self, args: argparse.Namespace):
         self.code = args.report
@@ -18,6 +18,11 @@ class ReportRequest:
 @dataclass
 class Fight:
     name: str
+    encounter_id: int
+    kill: Optional[bool]
+    difficulty: Optional[int]
+    boss_percentage: Optional[float]
+    average_item_level: Optional[float]
 
 
 @dataclass
