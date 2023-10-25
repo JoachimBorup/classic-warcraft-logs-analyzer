@@ -1,8 +1,7 @@
 import argparse
 
-import report
-import utils
-from models import ReportRequest
+from src import report, utils
+from src.models import ReportRequest
 
 
 def parse_args() -> argparse.Namespace:
