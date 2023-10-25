@@ -25,4 +25,6 @@ def _add_analyze_sub_parser(sub_parsers):
 
 
 def _add_token_sub_parser(sub_parsers):
-    sub_parsers.add_parser(name='token', help='Get an access token for the Warcraft Logs API.')
+    token_parser = sub_parsers.add_parser(name='token', help='Get an access token for the Warcraft Logs API.')
+    token_parser.add_argument('--client_id', help='The client ID for the Warcraft Logs API.')
+    token_parser.add_argument('--client_secret', help='The client secret for the Warcraft Logs API.')
