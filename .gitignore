@@ -1,0 +1,8 @@
+### JetBrains ###
+.idea/
+
+### macOS ###
+.DS_Store
+
+### dotenv ###
+.env
