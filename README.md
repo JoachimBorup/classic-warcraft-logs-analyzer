@@ -84,3 +84,24 @@ Report consists of 5 fights, with the avg. ilvl ranging between 254.32 and 254.4
 - Wiped on Lady Deathwhisper (Heroic) at 99.98%
 - Killed Lady Deathwhisper (Normal)
 ```
+
+
+```bash
+$ python main.py analyze 2AWt3rwncVYDHBmX --fights 28
+
+Retrieved report 2AWt3rwncVYDHBmX!
+
+Report consists of 1 fights, with the avg. ilvl ranging between 250.20 and 250.20:
+- Wiped on Festergut (Heroic) at 73%
+- Player: Druxus died to Melee
+- Player: Gingii died to Gaseous Blight
+- Player: Xaduh died to Divine Intervention
+- Player: Ayyitsspring died to Divine Intervention
+- Player: Kakisoep died to Melee
+- Player: Skengdu died to Melee
+- Player: Skadoof died to Melee
+- Player: Korrashiba died to Melee
+- Player: Druxus died to Gaseous Blight
+- The amount: 9 of people dying on this pull
+- The amount: 5 of people dying to Melee
+```
