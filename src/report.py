@@ -10,14 +10,10 @@ def analyze(request: ReportRequest):
 
     fights = report.fights
     if len(fights) == 0:
-        print("No fights found!")
+        print("No fights found matching the given criteria.")
         return
 
-    average_item_levels = [fight.average_item_level for fight in fights]
-    min_avg_ilvl, max_avg_ilvl = min(average_item_levels), max(average_item_levels)
-
-    print(f"Report consists of {len(fights)} fights, with the avg. ilvl "
-          f"ranging between {min_avg_ilvl:.2f} and {max_avg_ilvl:.2f}:")
+    print(f"Report consists of {len(fights)} fights:")
     for fight in fights:
         mode = "Heroic" if fight.difficulty == 4 else "Normal"
         if fight.kill:
