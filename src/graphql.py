@@ -1,7 +1,7 @@
 import requests
 
-from models import Fight, Report, ReportRequest
-from utils import get_env_var
+from src.models import Fight, Report, ReportRequest
+from src.utils import get_env_var
 
 API_URL = 'https://www.warcraftlogs.com/api/v2/user'
 

@@ -1,5 +1,5 @@
-import graphql
-from models import ReportRequest
+from src import graphql
+from src.models import ReportRequest
 
 
 def analyze(request: ReportRequest):
