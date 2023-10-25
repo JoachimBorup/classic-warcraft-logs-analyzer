@@ -2,17 +2,29 @@ import argparse
 from dataclasses import dataclass
 from typing import List, Optional
 
+from src.constants import ENCOUNTER
+
 
 @dataclass
 class ReportRequest:
     code: str
-    encounter: Optional[str]
+    name: Optional[str]
+    encounter: Optional[int]
     fights: List[str]
 
     def __init__(self, args: argparse.Namespace):
         self.code = args.report
-        self.encounter = args.encounter
         self.fights = args.fights
+
+        if args.name is not None:
+            self.name = args.name
+            self.encounter = ENCOUNTER.get_id(args.name)
+        elif args.encounter is not None:
+            self.encounter = args.encounter
+            self.name = ENCOUNTER.get_name(args.encounter)
+        else:
+            self.name = None
+            self.encounter = None
 
 
 @dataclass
