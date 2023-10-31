@@ -40,5 +40,12 @@ class Fight:
 
 
 @dataclass
+class DeathEvent:
+    name: str
+    ability_name: str
+
+
+@dataclass
 class Report:
     fights: List[Fight]
+    death_events: List[DeathEvent]

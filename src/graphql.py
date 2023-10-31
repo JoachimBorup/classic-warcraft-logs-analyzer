@@ -1,6 +1,6 @@
 import requests
 
-from src.models import Fight, Report, ReportRequest
+from src.models import DeathEvent, Fight, Report, ReportRequest
 from src.utils import get_env_var
 
 API_URL = 'https://www.warcraftlogs.com/api/v2/user'
@@ -43,6 +43,7 @@ def get_report(request: ReportRequest) -> Report:
                         bossPercentage
                         averageItemLevel
                     }
+                    table(encounterID: $encounterID, fightIDs: $fightIDs, killType: $killType)
                 }
             }
         }
@@ -55,7 +56,11 @@ def get_report(request: ReportRequest) -> Report:
     }
 
     data = query_graphql(query, variables)
-    json_fights = data['reportData']['report']['fights']
+    report = data['reportData']['report']
+    json_fights = report['fights']
+    death_events = report['table']['data']['deathEvents']
+
+    print(death_events)
 
     fights = [Fight(
         name=json_fight['name'],
@@ -66,4 +71,9 @@ def get_report(request: ReportRequest) -> Report:
         average_item_level=json_fight['averageItemLevel']
     ) for json_fight in json_fights]
 
-    return Report(fights)
+    death_events = [DeathEvent(
+        name=json_table['name'],
+        ability_name=json_table['ability']['name']
+    ) for json_table in death_events]
+
+    return Report(fights=fights, death_events=death_events)
