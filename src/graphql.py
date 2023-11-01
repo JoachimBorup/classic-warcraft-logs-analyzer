@@ -31,13 +31,21 @@ def query_graphql(query: str, variables: dict) -> dict:
 
 
 def get_report(request: ReportRequest) -> Report:
+    fights = [get_fight(request, fight_id) for fight_id in request.fight_ids]
+    return Report(fights=fights)
+
+
+def get_fight(request: ReportRequest, fight_id: int) -> Fight:
     query = """
         query ($code: String!, $encounterID: Int, $fightIDs: [Int], $killType: KillType) {
             reportData {
                 report(code: $code) {
                     fights(encounterID: $encounterID, fightIDs: $fightIDs, killType: $killType) {
-                        encounterID
+                        id
                         name
+                        encounterID
+                        startTime
+                        endTime
                         kill
                         difficulty
                         bossPercentage
@@ -50,30 +58,11 @@ def get_report(request: ReportRequest) -> Report:
     """
     variables = {
         'code': request.code,
-        'encounterID': request.encounter,
-        'fightIDs': request.fights,
-        'killType': request.type
+        'encounterID': request.encounter_id,
+        'fightIDs': [fight_id],
+        'killType': request.kill_type
     }
 
-    data = query_graphql(query, variables)
-    report = data['reportData']['report']
-    json_fights = report['fights']
-    death_events = report['table']['data']['deathEvents']
-
-    print(death_events)
-
-    fights = [Fight(
-        name=json_fight['name'],
-        encounter_id=json_fight['encounterID'],
-        kill=json_fight['kill'],
-        difficulty=json_fight['difficulty'],
-        boss_percentage=json_fight['bossPercentage'],
-        average_item_level=json_fight['averageItemLevel']
-    ) for json_fight in json_fights]
-
-    death_events = [DeathEvent(
-        name=json_table['name'],
-        ability_name=json_table['ability']['name']
-    ) for json_table in death_events]
-
-    return Report(fights=fights, death_events=death_events)
+    report = query_graphql(query, variables)['reportData']['report']
+    death_events = [DeathEvent(death) for death in report['table']['data']['deathEvents']]
+    return Fight(report['fights'][0], death_events)
