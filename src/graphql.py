@@ -1,6 +1,10 @@
+from multiprocessing import Manager
+from threading import Thread
+from typing import List
+
 import requests
 
-from src.models import Fight, Report, ReportRequest
+from src.models import DeathEvent, Fight, Report, ReportRequest
 from src.utils import get_env_var
 
 API_URL = 'https://www.warcraftlogs.com/api/v2/user'
@@ -31,13 +35,27 @@ def query_graphql(query: str, variables: dict) -> dict:
 
 
 def get_report(request: ReportRequest) -> Report:
+    """Gets a report from the Warcraft Logs API.
+
+    :param request: The report request.
+    :return: The report.
+    """
+
+    fights = get_fights(request)
+    return Report(fights=fights)
+
+
+def get_fights(request: ReportRequest) -> List[Fight]:
     query = """
         query ($code: String!, $encounterID: Int, $fightIDs: [Int], $killType: KillType) {
             reportData {
                 report(code: $code) {
                     fights(encounterID: $encounterID, fightIDs: $fightIDs, killType: $killType) {
-                        encounterID
+                        id
                         name
+                        encounterID
+                        startTime
+                        endTime
                         kill
                         difficulty
                         bossPercentage
@@ -49,21 +67,72 @@ def get_report(request: ReportRequest) -> Report:
     """
     variables = {
         'code': request.code,
-        'encounterID': request.encounter,
-        'fightIDs': request.fights,
-        'killType': request.type
+        'encounterID': request.encounter_id,
+        'fightIDs': request.fight_ids,
+        'killType': request.kill_type
     }
 
-    data = query_graphql(query, variables)
-    json_fights = data['reportData']['report']['fights']
+    report = query_graphql(query, variables)['reportData']['report']
+    return get_fights_with_death_events(request, report['fights'])
 
-    fights = [Fight(
-        name=json_fight['name'],
-        encounter_id=json_fight['encounterID'],
-        kill=json_fight['kill'],
-        difficulty=json_fight['difficulty'],
-        boss_percentage=json_fight['bossPercentage'],
-        average_item_level=json_fight['averageItemLevel']
-    ) for json_fight in json_fights]
 
-    return Report(fights)
+def get_fights_with_death_events(request: ReportRequest, json_fights: List[dict]) -> List[Fight]:
+    """Gets a list of fights with death events for each fight.
+    This method is parallelized to speed up the process of retrieving death events.
+
+    :param request: The report request.
+    :param json_fights: The fights to retrieve death events for.
+    :return: The fights with death events.
+    """
+
+    def process_death_events(json_fight: dict):
+        death_events = get_fight_death_events(request, json_fight['id'])
+        fights.append(Fight(json_fight, death_events))
+
+    fights = Manager().list()
+    threads = []
+
+    for i, fight in enumerate(json_fights):
+        thread = Thread(target=process_death_events, args=[fight])
+        threads.append(thread)
+        thread.start()
+    for thread in threads:
+        thread.join()
+
+    return list(sorted(fights, key=lambda f: f.start_time))
+
+
+def get_fight_death_events(request: ReportRequest, fight_id: int) -> List[DeathEvent]:
+    """Gets the death events for a given fight.
+
+    :param request: The report request.
+    :param fight_id: The ID of the fight to retrieve death events for.
+    :return: The death events for the given fight.
+    """
+
+    query = """
+        query ($code: String!, $encounterID: Int, $fightIDs: [Int], $killType: KillType) {
+            reportData {
+                report(code: $code) {
+                    table(encounterID: $encounterID, fightIDs: $fightIDs, killType: $killType)
+                }
+            }
+        }
+    """
+    variables = {
+        'code': request.code,
+        'encounterID': request.encounter_id,
+        'fightIDs': [fight_id],
+        'killType': request.kill_type
+    }
+
+    report = query_graphql(query, variables)['reportData']['report']
+    death_events = []
+
+    for death in report['table']['data']['deathEvents']:
+        try:
+            death_events.append(DeathEvent(death))
+        except KeyError:
+            print(f"Warning: Skipping unknown death event: {death}")
+
+    return death_events
