@@ -35,6 +35,12 @@ def query_graphql(query: str, variables: dict) -> dict:
 
 
 def get_report(request: ReportRequest) -> Report:
+    """Gets a report from the Warcraft Logs API.
+
+    :param request: The report request.
+    :return: The report.
+    """
+
     fights = get_fights(request)
     return Report(fights=fights)
 
@@ -71,6 +77,14 @@ def get_fights(request: ReportRequest) -> List[Fight]:
 
 
 def get_fights_with_death_events(request: ReportRequest, json_fights: List[dict]) -> List[Fight]:
+    """Gets a list of fights with death events for each fight.
+    This method is parallelized to speed up the process of retrieving death events.
+
+    :param request: The report request.
+    :param json_fights: The fights to retrieve death events for.
+    :return: The fights with death events.
+    """
+
     def process_death_events(json_fight: dict):
         death_events = get_fight_death_events(request, json_fight['id'])
         fights.append(Fight(json_fight, death_events))
@@ -89,6 +103,13 @@ def get_fights_with_death_events(request: ReportRequest, json_fights: List[dict]
 
 
 def get_fight_death_events(request: ReportRequest, fight_id: int) -> List[DeathEvent]:
+    """Gets the death events for a given fight.
+
+    :param request: The report request.
+    :param fight_id: The ID of the fight to retrieve death events for.
+    :return: The death events for the given fight.
+    """
+
     query = """
         query ($code: String!, $encounterID: Int, $fightIDs: [Int], $killType: KillType) {
             reportData {
