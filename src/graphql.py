@@ -1,6 +1,6 @@
+import sys
 from multiprocessing import Manager
 from threading import Thread
-from typing import List
 
 import requests
 
@@ -41,16 +41,26 @@ def get_report(request: ReportRequest) -> Report:
     :return: The report.
     """
 
-    fights = get_fights(request)
-    return Report(fights=fights)
-
-
-def get_fights(request: ReportRequest) -> List[Fight]:
     query = """
-        query ($code: String!, $encounterID: Int, $fightIDs: [Int], $killType: KillType) {
+        query (
+            $code: String!
+            $encounterID: Int
+            $fightIDs: [Int]
+            $killType: KillType
+        ) {
             reportData {
                 report(code: $code) {
-                    fights(encounterID: $encounterID, fightIDs: $fightIDs, killType: $killType) {
+                    masterData {
+                        actors {
+                            id
+                            name
+                        }
+                    }
+                    fights(
+                        encounterID: $encounterID
+                        fightIDs: $fightIDs
+                        killType: $killType
+                    ) {
                         id
                         name
                         encounterID
@@ -73,10 +83,13 @@ def get_fights(request: ReportRequest) -> List[Fight]:
     }
 
     report = query_graphql(query, variables)['reportData']['report']
-    return get_fights_with_death_events(request, report['fights'])
+    fights = get_fights_with_death_events(request, report['fights'])
+    actors = {actor['id']: actor['name'] for actor in report['masterData']['actors']}
+
+    return Report(fights, actors)
 
 
-def get_fights_with_death_events(request: ReportRequest, json_fights: List[dict]) -> List[Fight]:
+def get_fights_with_death_events(request: ReportRequest, json_fights: list[dict]) -> list[Fight]:
     """Gets a list of fights with death events for each fight.
     This method is parallelized to speed up the process of retrieving death events.
 
@@ -90,11 +103,9 @@ def get_fights_with_death_events(request: ReportRequest, json_fights: List[dict]
         fights.append(Fight(json_fight, death_events))
 
     fights = Manager().list()
-    threads = []
+    threads = [Thread(target=process_death_events, args=[fight]) for fight in json_fights]
 
-    for i, fight in enumerate(json_fights):
-        thread = Thread(target=process_death_events, args=[fight])
-        threads.append(thread)
+    for thread in threads:
         thread.start()
     for thread in threads:
         thread.join()
@@ -102,7 +113,7 @@ def get_fights_with_death_events(request: ReportRequest, json_fights: List[dict]
     return list(sorted(fights, key=lambda f: f.start_time))
 
 
-def get_fight_death_events(request: ReportRequest, fight_id: int) -> List[DeathEvent]:
+def get_fight_death_events(request: ReportRequest, fight_id: int) -> list[DeathEvent]:
     """Gets the death events for a given fight.
 
     :param request: The report request.
@@ -136,3 +147,49 @@ def get_fight_death_events(request: ReportRequest, fight_id: int) -> List[DeathE
             print(f"Warning: Skipping unknown death event: {death}")
 
     return death_events
+
+
+def get_actor_events(request: ReportRequest, actor_id: int, fight: Fight):
+    query = """
+    query (
+        $code: String!
+        $encounterID: Int
+        $fightIDs: [Int]
+        $killType: KillType
+        $sourceID: Int
+        $startTime: Float
+        $endTime: Float
+    ) {
+        reportData {
+            report(code: $code) {
+                events(
+                    encounterID: $encounterID
+                    fightIDs: $fightIDs
+                    killType: $killType
+                    sourceID: $sourceID
+                    startTime: $startTime
+                    endTime: $endTime
+                ) {
+                    nextPageTimestamp
+                    data
+                }
+            }
+        }
+    }
+    """
+    variables = {
+        'code': request.code,
+        'encounterID': request.encounter_id,
+        'fightIDs': [fight.id],
+        'killType': request.kill_type,
+        'sourceID': actor_id,
+        'startTime': fight.start_time,
+        'endTime': fight.end_time
+    }
+
+    events = query_graphql(query, variables)['reportData']['report']['events']
+    next_page_timestamp = events['nextPageTimestamp']
+    if next_page_timestamp is not None:
+        print(f"Warning: More events exist at timestamp {next_page_timestamp}", file=sys.stderr)
+
+    return events['data']

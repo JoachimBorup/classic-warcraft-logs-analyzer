@@ -1,6 +1,6 @@
 import argparse
 from dataclasses import dataclass
-from typing import List, Optional
+from typing import Optional
 
 from src.constants import ENCOUNTER
 
@@ -10,7 +10,7 @@ class ReportRequest:
     code: str
     name: Optional[str]
     encounter_id: Optional[int]
-    fight_ids: List[int]
+    fight_ids: list[int]
     kill_type: str
 
     def __init__(self, args: argparse.Namespace):
@@ -40,6 +40,9 @@ class DeathEvent:
         self.time = json['deathTime']
         self.ability_name = json['ability']['name']
 
+    def is_between(self, start_time, end_time) -> bool:
+        return start_time <= self.time <= end_time
+
 
 @dataclass
 class Fight:
@@ -52,7 +55,7 @@ class Fight:
     difficulty: Optional[int]
     boss_percentage: Optional[float]
     average_item_level: Optional[float]
-    death_events: List[DeathEvent]
+    death_events: list[DeathEvent]
 
     def __init__(self, json, death_events):
         self.id = json['id']
@@ -66,7 +69,19 @@ class Fight:
         self.average_item_level = json['averageItemLevel']
         self.death_events = death_events
 
+    def deaths_between(self, start_time, end_time) -> list[DeathEvent]:
+        start_time -= self.start_time
+        end_time -= self.start_time
+        return [death for death in self.death_events if death.is_between(start_time, end_time)]
+
 
 @dataclass
 class Report:
-    fights: List[Fight]
+    fights: list[Fight]
+    actors: dict[int, str]
+    actor_ids: dict[str, int]
+
+    def __init__(self, fights, actors):
+        self.fights = fights
+        self.actors = actors
+        self.actor_ids = {actor: id for id, actor in actors.items()}
